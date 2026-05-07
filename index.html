@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>오토 레저 · 중고차 매매 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-deep: #0d1117;
+  --bg-base: #131821;
+  --bg-card: #1a2030;
+  --bg-card-hover: #202738;
+  --bg-input: #0e131c;
+  --border: #2a3344;
+  --border-strong: #3a4458;
+  --text-primary: #e8ecf3;
+  --text-secondary: #a8b2c4;
+  --text-muted: #6b7689;
+  --text-dim: #4a5468;
+  --accent: #d4a574;
+  --accent-hover: #e0b585;
+  --accent-soft: rgba(212, 165, 116, 0.12);
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.12);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, 0.12);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.12);
+  --font-display: 'Fraunces', 'Noto Serif KR', serif;
+  --font-body: 'IBM Plex Sans KR', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(212, 165, 116, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 80% 100%, rgba(96, 165, 250, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.top-bar {
+  position: sticky; top: 0; z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 16px 32px;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  gap: 24px;
+}
+
+.brand { display: flex; align-items: center; gap: 14px; justify-self: start; }
+
+.brand-mark {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8895c 100%);
+  color: var(--bg-deep);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900; font-size: 18px;
+  border-radius: var(--radius-sm);
+  letter-spacing: -0.5px;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
+}
+
+.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: 1.5px; color: var(--text-primary); }
+.brand-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+.top-nav {
+  display: flex; gap: 4px;
+  background: var(--bg-card); padding: 4px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  justify-self: center;
+}
+
+.nav-btn {
+  background: transparent; border: none;
+  color: var(--text-secondary);
+  padding: 8px 18px; border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.3px;
+}
+
+.nav-btn:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+.nav-btn.active { background: var(--accent); color: var(--bg-deep); font-weight: 600; }
+
+.top-spacer { justify-self: end; }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+
+.tab-panel { display: none; animation: fadeIn 0.3s ease; }
+.tab-panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 32px; padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--accent); margin-bottom: 8px; }
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 36px; font-weight: 500;
+  letter-spacing: -1px; line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.page-title em { font-style: italic; color: var(--accent); font-weight: 400; }
+
+.edit-badge {
+  display: inline-block;
+  background: var(--info-soft);
+  color: var(--info);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.period-selector, .filter-row {
+  display: flex; gap: 4px;
+  background: var(--bg-card); padding: 4px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+}
+
+.period-btn {
+  background: transparent; border: none;
+  color: var(--text-secondary);
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-body); transition: all 0.2s;
+}
+
+.period-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+.filter-row select {
+  background: transparent; border: none;
+  color: var(--text-primary); padding: 8px 16px; font-size: 13px;
+  font-family: var(--font-body); cursor: pointer; outline: none;
+}
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+.kpi-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  position: relative; overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+
+.kpi-card.kpi-primary {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(212, 165, 116, 0.08) 100%);
+  border-color: rgba(212, 165, 116, 0.3);
+}
+
+.kpi-card.kpi-primary::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%; background: var(--accent);
+}
+
+.kpi-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -1px; line-height: 1; margin-bottom: 8px;
+}
+
+.kpi-value .unit { font-size: 16px; color: var(--text-muted); margin-left: 4px; font-weight: 400; }
+.kpi-trend { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
+
+.dash-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+.dash-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+
+.card-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--text-primary); }
+.card-sub { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.5px; }
+.chart-wrap { position: relative; height: 280px; }
+.chart-wrap.small { height: 180px; }
+
+.stock-summary { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+.stock-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-input); border-radius: var(--radius-sm);
+  border-left: 2px solid var(--border-strong);
+}
+
+.stock-row.warning { border-left-color: var(--warning); }
+.stock-label { font-size: 13px; color: var(--text-secondary); }
+
+.stock-value { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); font-size: 14px; }
+.stock-row.warning .stock-value { color: var(--warning); }
+
+.sim-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+.sim-input-area { display: flex; flex-direction: column; gap: 16px; }
+.sim-result-area { position: sticky; top: 100px; }
+
+.form-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+}
+
+.form-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+
+.field label {
+  font-size: 12px; color: var(--text-secondary); font-weight: 500;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+
+.field .hint { font-size: 10px; color: var(--text-muted); font-weight: 400; font-family: var(--font-mono); }
+
+.field input, .field select {
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 14px;
+  outline: none; transition: all 0.2s; width: 100%;
+}
+
+.field select { font-family: var(--font-body); cursor: pointer; }
+
+.field input:focus, .field select:focus {
+  border-color: var(--accent);
+  background: var(--bg-base);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field input.price-input { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; }
+
+.field input.auto-fill {
+  background: rgba(212, 165, 116, 0.05);
+  color: var(--accent);
+  border-color: rgba(212, 165, 116, 0.2);
+}
+
+.margin-helper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: rgba(96, 165, 250, 0.06);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.margin-helper .field { gap: 4px; }
+.margin-helper label { font-size: 11px; color: var(--info); font-weight: 600; }
+.margin-helper input { font-size: 14px; padding: 8px 12px; }
+
+.btn-helper {
+  background: var(--info);
+  color: var(--bg-deep);
+  border: none;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-helper:hover { background: #7eb6ff; transform: translateY(-1px); }
+
+.subtotal {
+  margin-top: 20px; padding: 14px 18px;
+  background: var(--bg-input); border-radius: var(--radius-sm);
+  display: flex; justify-content: space-between; align-items: center;
+  border-left: 3px solid var(--accent);
+}
+
+.subtotal span { font-size: 13px; color: var(--text-secondary); }
+.subtotal strong { font-family: var(--font-mono); font-weight: 600; color: var(--accent); font-size: 16px; }
+
+.action-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+
+.btn-primary, .btn-secondary, .btn-danger {
+  padding: 12px 24px; border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+
+.btn-primary { background: var(--accent); color: var(--bg-deep); }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25); }
+
+.btn-secondary { background: var(--bg-card-hover); color: var(--text-primary); border: 1px solid var(--border-strong); }
+.btn-secondary:hover { background: var(--border); }
+
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-danger:hover { background: var(--danger-soft); }
+
+.result-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+
+.result-grade {
+  display: flex; align-items: center; gap: 16px;
+  padding: 24px;
+  background: var(--bg-input); border-bottom: 1px solid var(--border);
+  transition: all 0.3s;
+}
+
+.result-grade.grade-recommend { background: var(--success-soft); border-bottom-color: var(--success); }
+.result-grade.grade-normal { background: var(--warning-soft); border-bottom-color: var(--warning); }
+.result-grade.grade-bad { background: var(--danger-soft); border-bottom-color: var(--danger); }
+
+.grade-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700;
+  color: var(--text-muted); flex-shrink: 0;
+}
+
+.grade-recommend .grade-icon { background: var(--success); color: var(--bg-deep); }
+.grade-normal .grade-icon { background: var(--warning); color: var(--bg-deep); }
+.grade-bad .grade-icon { background: var(--danger); color: var(--bg-deep); }
+
+.grade-label { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.grade-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+.result-main { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+.result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.result-row:last-child { border-bottom: none; }
+.result-row span { font-size: 13px; color: var(--text-secondary); }
+.result-row strong { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); font-size: 15px; }
+
+.result-row.big { padding: 12px 0 16px; }
+.result-row.big span { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.result-row.big strong { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -1px; }
+
+.profit-positive { color: var(--success) !important; }
+.profit-negative { color: var(--danger) !important; }
+.profit-zero { color: var(--text-muted) !important; }
+
+.result-breakdown { padding: 16px 24px; background: var(--bg-input); border-top: 1px solid var(--border); }
+
+.result-breakdown h4 {
+  font-size: 11px; color: var(--text-muted);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 10px; font-weight: 500;
+}
+
+.breakdown-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; }
+.breakdown-row span:first-child { color: var(--text-secondary); }
+.breakdown-row span:last-child { color: var(--text-primary); font-family: var(--font-mono); font-weight: 500; }
+
+.warnings { padding: 0 24px 16px; }
+
+.warning-item {
+  background: var(--warning-soft);
+  border-left: 3px solid var(--warning);
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text-primary);
+  margin-top: 8px;
+}
+
+.inventory-list { display: flex; flex-direction: column; gap: 12px; }
+
+.inventory-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: grid; grid-template-columns: 1fr auto auto auto auto;
+  gap: 24px; align-items: center;
+  transition: all 0.2s;
+}
+
+.inventory-item:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+
+.inv-info h4 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+.inv-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+.inv-cell { text-align: right; }
+
+.inv-cell-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.inv-cell-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+.inv-status { padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+.inv-status.holding { background: var(--info-soft); color: var(--info); }
+.inv-status.sold { background: var(--success-soft); color: var(--success); }
+.inv-status.warning { background: var(--warning-soft); color: var(--warning); }
+
+.inv-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+.inv-actions button {
+  background: var(--bg-input); color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  font-size: 11px; cursor: pointer;
+  font-family: var(--font-body); transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.inv-actions button:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.inv-actions button.primary:hover { color: var(--accent); border-color: var(--accent); }
+.inv-actions button.danger:hover { color: var(--danger); border-color: var(--danger); }
+.inv-actions button.success:hover { color: var(--success); border-color: var(--success); }
+
+.empty-state {
+  background: var(--bg-card); border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 80px 20px; text-align: center;
+}
+
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-title { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+.empty-desc { font-size: 13px; color: var(--text-muted); }
+
+.empty-mini {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+}
+
+.settings-grid { display: flex; flex-direction: column; gap: 16px; max-width: 1000px; }
+.settings-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+
+.fee-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+
+.fee-table th {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-weight: 500; text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+  font-size: 12px;
+}
+
+.fee-table th:not(:first-child) { text-align: right; }
+
+.fee-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.fee-table td:first-child { color: var(--text-secondary); font-family: var(--font-body); }
+.fee-table td:not(:first-child) { text-align: right; }
+
+.fee-table input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 110px;
+  text-align: right;
+  transition: all 0.15s;
+}
+
+.fee-table input:hover { border-color: var(--border); background: var(--bg-input); }
+.fee-table input:focus { outline: none; border-color: var(--accent); background: var(--bg-base); box-shadow: 0 0 0 2px var(--accent-soft); }
+.fee-table tr:last-child td { border-bottom: none; }
+
+.toast {
+  position: fixed; bottom: 32px; right: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 14px 22px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500;
+  opacity: 0; transform: translateY(20px);
+  transition: all 0.3s ease; pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-left: 3px solid var(--accent);
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+
+@media (max-width: 1024px) {
+  .container { padding: 20px; }
+  .top-bar { grid-template-columns: 1fr; gap: 12px; padding: 12px 16px; }
+  .brand { justify-self: center; }
+  .top-nav { justify-self: center; width: 100%; overflow-x: auto; }
+  .top-spacer { display: none; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-row { grid-template-columns: 1fr; }
+  .sim-layout { grid-template-columns: 1fr; }
+  .sim-result-area { position: relative; top: 0; }
+  .inventory-item { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+@media (max-width: 720px) {
+  .nav-btn { padding: 8px 14px; font-size: 12px; white-space: nowrap; }
+  .container { padding: 16px; }
+  .page-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .page-title { font-size: 26px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi-card { padding: 14px; }
+  .kpi-value { font-size: 24px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .inventory-item { grid-template-columns: 1fr; gap: 12px; }
+  .inv-cell { text-align: left; }
+  .inv-actions { justify-content: flex-start; }
+  .action-row { flex-direction: column-reverse; }
+  .action-row button { width: 100%; }
+  .brand-sub { display: none; }
+  .toast { right: 16px; bottom: 16px; left: 16px; }
+  .fee-table { font-size: 11px; }
+  .fee-table th, .fee-table td { padding: 6px 8px; }
+  .fee-table input { width: 90px; font-size: 11px; }
+  .margin-helper { grid-template-columns: 1fr; }
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="brand">
+    <div class="brand-mark">AL</div>
+    <div class="brand-text">
+      <div class="brand-name">AUTO LEDGER</div>
+      <div class="brand-sub">중고차 매매 투자 판단 시스템</div>
+    </div>
+  </div>
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="dashboard">대시보드</button>
+    <button class="nav-btn" data-tab="simulator">시뮬레이터</button>
+    <button class="nav-btn" data-tab="inventory">재고관리</button>
+    <button class="nav-btn" data-tab="settings">설정</button>
+  </nav>
+  <div class="top-spacer"></div>
+</header>
+
+<main class="container">
+
+  <section class="tab-panel active" id="tab-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">DASHBOARD</div>
+        <h1 class="page-title">한눈에 보는 <em>매입·매도 현황</em></h1>
+      </div>
+      <div class="period-selector">
+        <button class="period-btn active" data-period="month">이번 달</button>
+        <button class="period-btn" data-period="quarter">분기</button>
+        <button class="period-btn" data-period="year">올해</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-label">이번 달 순이익</div>
+        <div class="kpi-value" id="kpiNetProfit">0원</div>
+        <div class="kpi-trend" id="kpiNetProfitTrend">전월 대비 -</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">매입 대수</div>
+        <div class="kpi-value" id="kpiBuyCount">0<span class="unit">대</span></div>
+        <div class="kpi-trend" id="kpiBuyAmount">총 0원</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">매도 대수</div>
+        <div class="kpi-value" id="kpiSellCount">0<span class="unit">대</span></div>
+        <div class="kpi-trend" id="kpiSellAmount">총 0원</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">평균 마진율</div>
+        <div class="kpi-value" id="kpiMargin">0<span class="unit">%</span></div>
+        <div class="kpi-trend" id="kpiMarginGrade">-</div>
+      </div>
+    </div>
+
+    <div class="dash-row">
+      <div class="dash-card">
+        <div class="card-header">
+          <h3>월별 매입·매도 추이</h3>
+          <span class="card-sub">최근 6개월</span>
+        </div>
+        <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+      </div>
+      <div class="dash-card">
+        <div class="card-header">
+          <h3>재고 현황</h3>
+          <span class="card-sub">현재 보유</span>
+        </div>
+        <div class="stock-summary">
+          <div class="stock-row"><span class="stock-label">보유 차량</span><span class="stock-value" id="stockCount">0대</span></div>
+          <div class="stock-row"><span class="stock-label">평균 보유일</span><span class="stock-value" id="stockAvgDays">0일</span></div>
+          <div class="stock-row"><span class="stock-label">투입 자본</span><span class="stock-value" id="stockCapital">0원</span></div>
+          <div class="stock-row warning"><span class="stock-label">⚠ 장기보유 차량</span><span class="stock-value" id="stockWarning">0대</span></div>
+          <div class="stock-row"><span class="stock-label">이번 달 발생 이자</span><span class="stock-value" id="interestThisMonth">0원</span></div>
+          <div class="stock-row"><span class="stock-label">미정산 이자 (보유분)</span><span class="stock-value" id="interestPending">0원</span></div>
+          <div class="stock-row"><span class="stock-label">월 예상 이자 부담</span><span class="stock-value" id="interestMonthly">0원</span></div>
+        </div>
+        <div class="chart-wrap small"><canvas id="stockPieChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="card-header">
+        <h3>월별 순이익 추이</h3>
+        <span class="card-sub">단위: 만원</span>
+      </div>
+      <div class="chart-wrap"><canvas id="profitChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="tab-simulator">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">SIMULATOR</div>
+        <h1 class="page-title">매입 전 <em>투자 판단 시뮬레이션</em><span class="edit-badge" id="editBadge" style="display:none">수정 모드</span></h1>
+      </div>
+    </div>
+
+    <div class="sim-layout">
+      <div class="sim-input-area">
+
+        <div class="form-card">
+          <h3 class="form-title">🚗 차량 정보</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>차종</label>
+              <input type="text" id="carModel" placeholder="예: 그랜저 IG 3.0">
+            </div>
+            <div class="field">
+              <label>연식</label>
+              <input type="number" id="carYear" placeholder="2020">
+            </div>
+            <div class="field">
+              <label>주행거리 (km)</label>
+              <input type="text" inputmode="numeric" data-numeric id="carKm" placeholder="50,000">
+            </div>
+            <div class="field">
+              <label>국내차/수입차 구분 <span class="hint">헤이딜러 수수료 자동 적용</span></label>
+              <select id="carOrigin">
+                <option value="domestic">국산차</option>
+                <option value="imported">수입차</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3 class="form-title">📥 매입 비용</h3>
+          <div class="form-grid">
+            <!-- 1. 차량 매입가 -->
+            <div class="field full">
+              <label>차량 매입가 <span class="hint">(원)</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="buyPrice" class="price-input" placeholder="0">
+            </div>
+
+            <!-- 2. 헤이딜러 매입수수료 -->
+            <div class="field">
+              <label>헤이딜러 매입수수료 <span class="hint">자동계산</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="heyFee" class="auto-fill" placeholder="0">
+            </div>
+
+            <!-- 3. 사무실 매입비 -->
+            <div class="field">
+              <label>사무실 매입비 <span class="hint">자동계산</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="officeFee" class="auto-fill" placeholder="0">
+            </div>
+
+            <!-- 4. 사무실 차량대금 이자 -->
+            <div class="field">
+              <label>사무실 차량대금 이자 <span class="hint">월 1% × 보유개월</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="officeInterest" class="auto-fill" placeholder="0">
+            </div>
+
+            <!-- 5. 예상 보유 개월 (이자 자동계산에 영향) -->
+            <div class="field">
+              <label>예상 보유 개월 (월)</label>
+              <input type="number" id="holdMonths" placeholder="1" value="1" min="0" step="0.5">
+            </div>
+
+            <!-- 6. 정비/수리비 -->
+            <div class="field">
+              <label>정비/수리비</label>
+              <input type="text" inputmode="numeric" data-numeric id="repairCost" placeholder="0">
+            </div>
+
+            <!-- 7. 광택/디테일링비 -->
+            <div class="field">
+              <label>광택/디테일링비</label>
+              <input type="text" inputmode="numeric" data-numeric id="detailCost" placeholder="0">
+            </div>
+
+            <!-- 8. 탁송/운송비 -->
+            <div class="field">
+              <label>탁송/운송비</label>
+              <input type="text" inputmode="numeric" data-numeric id="transportCost" placeholder="0">
+            </div>
+          </div>
+          <div class="subtotal">
+            <span>매입 총 비용</span>
+            <strong id="totalBuyCost">0원</strong>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3 class="form-title">📤 매도 예상</h3>
+          <div class="form-grid">
+            <div class="field full">
+              <label>예상 판매가 <span class="hint">(원)</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="sellPrice" class="price-input" placeholder="0">
+            </div>
+          </div>
+
+          <div class="margin-helper">
+            <div class="field">
+              <label>목표 순이익률 (%) <span class="hint" style="color:var(--text-muted)">원하는 % 입력</span></label>
+              <input type="number" id="targetMargin" placeholder="10" step="0.5">
+            </div>
+            <button type="button" class="btn-helper" id="btnCalcSellPrice">→ 판매가 자동 산출</button>
+          </div>
+
+          <div class="form-grid" style="margin-top: 16px;">
+            <div class="field full">
+              <label>성능점검비 <span class="hint">고정 35,000원</span></label>
+              <input type="text" inputmode="numeric" data-numeric id="inspectionFee" class="auto-fill" value="35,000">
+            </div>
+          </div>
+          <div class="subtotal">
+            <span>매도 부대비용</span>
+            <strong id="totalSellCost">0원</strong>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-secondary" id="btnReset">초기화</button>
+          <button class="btn-secondary" id="btnCancelEdit" style="display:none">수정 취소</button>
+          <button class="btn-primary" id="btnSave">재고에 등록</button>
+        </div>
+      </div>
+
+      <aside class="sim-result-area">
+        <div class="result-card" id="resultCard">
+          <div class="result-grade" id="resultGrade">
+            <div class="grade-icon" id="gradeIcon">?</div>
+            <div class="grade-text">
+              <div class="grade-label" id="gradeLabel">판단 대기</div>
+              <div class="grade-desc" id="gradeDesc">매입가와 판매가를 입력해주세요</div>
+            </div>
+          </div>
+
+          <div class="result-main">
+            <div class="result-row big">
+              <span>예상 순이익</span>
+              <strong id="netProfit" class="profit-zero">0원</strong>
+            </div>
+            <div class="result-row"><span>순이익률</span><strong id="profitMargin">0%</strong></div>
+            <div class="result-row"><span>월 평균 수익</span><strong id="monthlyProfit">0원</strong></div>
+            <div class="result-row"><span>손익분기 판매가</span><strong id="breakeven">0원</strong></div>
+            <div class="result-row"><span>ROI</span><strong id="roi">0%</strong></div>
+          </div>
+
+          <div class="result-breakdown">
+            <h4>비용 상세</h4>
+            <div class="breakdown-row"><span>매입 비용</span><span id="bdBuy">0원</span></div>
+            <div class="breakdown-row"><span>매도 비용</span><span id="bdSell">0원</span></div>
+            <div class="breakdown-row"><span>총 투입금</span><span id="bdTotal">0원</span></div>
+          </div>
+
+          <div class="warnings" id="warnings"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="tab-inventory">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">INVENTORY</div>
+        <h1 class="page-title">현재 <em>보유 재고 관리</em></h1>
+      </div>
+      <div class="filter-row">
+        <select id="inventoryFilter">
+          <option value="all">전체</option>
+          <option value="holding">보유중</option>
+          <option value="sold">판매완료</option>
+          <option value="warning">장기보유</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inventory-list" id="inventoryList">
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">등록된 차량이 없습니다</div>
+        <div class="empty-desc">시뮬레이터에서 차량을 분석한 뒤 "재고에 등록" 버튼을 눌러주세요</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="tab-settings">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">SETTINGS</div>
+        <h1 class="page-title">시스템 <em>설정</em></h1>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+
+      <div class="form-card">
+        <h3 class="form-title">📊 투자 판단 기준</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>추천 기준 순이익률 (%)</label>
+            <input type="number" id="setRecommend" value="10" step="0.5">
+            <div class="hint">이 수치 이상이면 "추천"</div>
+          </div>
+          <div class="field">
+            <label>보통 기준 순이익률 (%)</label>
+            <input type="number" id="setNormal" value="7" step="0.5">
+            <div class="hint">이 수치 이상이면 "보통", 미만은 "비추천"</div>
+          </div>
+          <div class="field">
+            <label>회전일수 경고 기준 (일)</label>
+            <input type="number" id="setWarnDays" value="45">
+            <div class="hint">이 일수 초과 시 장기보유로 분류</div>
+          </div>
+          <div class="field">
+            <label>성능점검비 (원)</label>
+            <input type="text" inputmode="numeric" data-numeric id="setInspectionFee" value="35,000">
+            <div class="hint">매도 시 고정 비용</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title">🏢 사무실 비용 설정</h3>
+        <p class="settings-desc">사무실 매입비와 차량대금 월 이자율을 설정합니다. 시뮬레이터의 매입 비용에 자동 반영됩니다.</p>
+        <div class="form-grid">
+          <div class="field">
+            <label>사무실 매입비 - 기본 금액 (원)</label>
+            <input type="text" inputmode="numeric" data-numeric id="setOfficeBase" value="350,000">
+            <div class="hint">모든 차량에 기본 부과</div>
+          </div>
+          <div class="field">
+            <label>고가차 추가 적용 기준 (원)</label>
+            <input type="text" inputmode="numeric" data-numeric id="setOfficeThreshold" value="29,500,000">
+            <div class="hint">이 가격 초과 시 추가 수수료</div>
+          </div>
+          <div class="field">
+            <label>고가차 추가 수수료율 (%)</label>
+            <input type="number" id="setOfficeRate" value="1" step="0.1">
+            <div class="hint">차량가 × 이 비율</div>
+          </div>
+          <div class="field">
+            <label>월 이자율 (%) <span class="hint" style="color:var(--warning)">월 단위</span></label>
+            <input type="number" id="setLoanRate" value="1" step="0.1">
+            <div class="hint">차량 매입가 × 월이자율 × 보유개월</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title">💰 헤이딜러 매입 수수료</h3>
+        <p class="settings-desc">매입가 구간별 수수료(부가세 포함)입니다. 시뮬레이터에서 차량 종류(국산/수입)와 매입가에 따라 자동 적용됩니다. 클릭해서 직접 수정 가능합니다.</p>
+        <table class="fee-table">
+          <thead>
+            <tr>
+              <th>최종 매입가 구간</th>
+              <th>국산차</th>
+              <th>수입차</th>
+            </tr>
+          </thead>
+          <tbody id="heyFeeBody"></tbody>
+        </table>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-primary" id="btnSaveSettings">설정 저장</button>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'autoLedger_v5';
+const SETTINGS_KEY = 'autoLedger_settings_v5';
+
+const DEFAULT_HEY_FEES = [
+  { min: 0,        max: 999999,    label: '100만 원 미만',         dom: 55000,  imp: 55000 },
+  { min: 1000000,  max: 1999999,   label: '100만 원 ~ 199만 원',   dom: 88000,  imp: 99000 },
+  { min: 2000000,  max: 2999999,   label: '200만 원 ~ 299만 원',   dom: 121000, imp: 143000 },
+  { min: 3000000,  max: 4999999,   label: '300만 원 ~ 499만 원',   dom: 165000, imp: 198000 },
+  { min: 5000000,  max: 6999999,   label: '500만 원 ~ 699만 원',   dom: 209000, imp: 253000 },
+  { min: 7000000,  max: 9999999,   label: '700만 원 ~ 999만 원',   dom: 253000, imp: 297000 },
+  { min: 10000000, max: 14999999,  label: '1,000만 원 ~ 1,499만 원', dom: 297000, imp: 341000 },
+  { min: 15000000, max: 19999999,  label: '1,500만 원 ~ 1,999만 원', dom: 341000, imp: 396000 },
+  { min: 20000000, max: 29999999,  label: '2,000만 원 ~ 2,999만 원', dom: 385000, imp: 440000 },
+  { min: 30000000, max: 39999999,  label: '3,000만 원 ~ 3,999만 원', dom: 429000, imp: 484000 },
+  { min: 40000000, max: Infinity,  label: '4,000만 원 이상',         dom: 440000, imp: 550000 }
+];
+
+let state = {
+  inventory: [],
+  settings: {
+    recommend: 10,
+    normal: 7,
+    warnDays: 45,
+    inspectionFee: 35000,
+    officeBase: 350000,
+    officeThreshold: 29500000,
+    officeRate: 1,
+    loanRate: 1,
+    heyFees: JSON.parse(JSON.stringify(DEFAULT_HEY_FEES))
+  },
+  editingId: null
+};
+
+let charts = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFromStorage();
+  initTabs();
+  initSimulator();
+  initButtons();
+  initNumericInputs();
+  initSettings();
+  renderHeyFeeTable();
+  renderDashboard();
+  renderInventory();
+  setTimeout(calculateAll, 100);
+});
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      state.inventory = data.inventory || [];
+    }
+    const settings = localStorage.getItem(SETTINGS_KEY);
+    if (settings) {
+      const parsed = JSON.parse(settings);
+      state.settings = { ...state.settings, ...parsed };
+      if (!Array.isArray(state.settings.heyFees) || state.settings.heyFees.length !== DEFAULT_HEY_FEES.length) {
+        state.settings.heyFees = JSON.parse(JSON.stringify(DEFAULT_HEY_FEES));
+      } else {
+        state.settings.heyFees = DEFAULT_HEY_FEES.map((def, i) => ({
+          ...def,
+          dom: state.settings.heyFees[i].dom != null ? state.settings.heyFees[i].dom : def.dom,
+          imp: state.settings.heyFees[i].imp != null ? state.settings.heyFees[i].imp : def.imp
+        }));
+      }
+    }
+  } catch (e) { console.error('Storage load error:', e); }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ inventory: state.inventory }));
+    const settingsToSave = { ...state.settings };
+    settingsToSave.heyFees = state.settings.heyFees.map(f => ({
+      min: f.min,
+      max: f.max === Infinity ? null : f.max,
+      label: f.label,
+      dom: f.dom,
+      imp: f.imp
+    }));
+    delete settingsToSave.editingId;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsToSave));
+  } catch (e) { console.error('Storage save error:', e); }
+}
+
+function initNumericInputs() {
+  document.querySelectorAll('input[data-numeric]').forEach(input => attachNumericFormat(input));
+}
+
+function attachNumericFormat(input) {
+  input.addEventListener('input', (e) => {
+    const cursorPos = e.target.selectionStart;
+    const oldLen = e.target.value.length;
+    const raw = e.target.value.replace(/[^\d]/g, '');
+    const formatted = raw === '' ? '' : Number(raw).toLocaleString('ko-KR');
+    e.target.value = formatted;
+    const newLen = formatted.length;
+    const newPos = Math.max(0, cursorPos + (newLen - oldLen));
+    try { e.target.setSelectionRange(newPos, newPos); } catch(_) {}
+  });
+}
+
+function parseNum(val) {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  return Number(String(val).replace(/[^\d]/g, '')) || 0;
+}
+
+function setInputNum(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = (value === 0 || !value) ? '' : Number(value).toLocaleString('ko-KR');
+}
+
+function initTabs() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (tab === 'dashboard') renderDashboard();
+      if (tab === 'inventory') renderInventory();
+      if (tab === 'simulator') {
+        // 시뮬레이터 진입 시 성능점검비 기본값 채우기
+        applyInspectionFeeDefault();
+      }
+    });
+  });
+}
+
+function applyInspectionFeeDefault() {
+  const el = document.getElementById('inspectionFee');
+  if (!parseNum(el.value)) {
+    setInputNum('inspectionFee', state.settings.inspectionFee);
+  }
+}
+
+function initSimulator() {
+  document.getElementById('carOrigin').addEventListener('change', () => { autoCalcHeyFee(); calculateAll(); });
+  document.getElementById('buyPrice').addEventListener('input', () => {
+    autoCalcOffice();
+    autoCalcHeyFee();
+    calculateAll();
+  });
+  document.getElementById('holdMonths').addEventListener('input', () => { autoCalcOffice(); calculateAll(); });
+
+  ['repairCost','detailCost','transportCost','inspectionFee','sellPrice',
+   'officeFee','officeInterest','heyFee'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', calculateAll);
+  });
+
+  // 초기 성능점검비 채우기
+  setInputNum('inspectionFee', state.settings.inspectionFee);
+}
+
+function initButtons() {
+  document.getElementById('btnReset').addEventListener('click', resetSimulator);
+  document.getElementById('btnSave').addEventListener('click', saveToInventory);
+  document.getElementById('btnCancelEdit').addEventListener('click', cancelEdit);
+  document.getElementById('btnCalcSellPrice').addEventListener('click', calculateSellPriceFromMargin);
+  document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
+  document.getElementById('inventoryFilter').addEventListener('change', renderInventory);
+}
+
+function autoCalcOffice() {
+  const buyPrice = parseNum(document.getElementById('buyPrice').value);
+  const holdMonths = Number(document.getElementById('holdMonths').value) || 0;
+  const s = state.settings;
+
+  let officeFee = s.officeBase;
+  if (buyPrice > s.officeThreshold) {
+    officeFee += Math.floor(buyPrice * (s.officeRate / 100));
+  }
+  setInputNum('officeFee', officeFee);
+
+  const interest = Math.floor(buyPrice * (s.loanRate / 100) * holdMonths);
+  setInputNum('officeInterest', interest);
+}
+
+function autoCalcHeyFee() {
+  const buyPrice = parseNum(document.getElementById('buyPrice').value);
+  const origin = document.getElementById('carOrigin').value;
+
+  if (buyPrice === 0) {
+    setInputNum('heyFee', 0);
+    return;
+  }
+
+  const tier = state.settings.heyFees.find(t => {
+    const max = t.max === null ? Infinity : t.max;
+    return buyPrice >= t.min && buyPrice <= max;
+  });
+
+  if (tier) {
+    const fee = origin === 'imported' ? tier.imp : tier.dom;
+    setInputNum('heyFee', fee);
+  }
+}
+
+function calculateSellPriceFromMargin() {
+  const targetMargin = Number(document.getElementById('targetMargin').value) || 0;
+  if (targetMargin <= 0 || targetMargin >= 100) {
+    showToast('목표 순이익률은 0~100 사이여야 합니다', 'error');
+    return;
+  }
+
+  const d = getSimulatorInputs();
+  const totalBuy = d.buyPrice + d.heyFee + d.repairCost + d.detailCost
+    + d.transportCost + d.officeFee + d.officeInterest;
+
+  if (totalBuy === 0) {
+    showToast('매입 정보를 먼저 입력해주세요', 'error');
+    return;
+  }
+
+  // 매도 부대비용 = 성능점검비만 (카드수수료, 알선료 제거됨)
+  const fixedSellCost = d.inspectionFee;
+  const targetR = targetMargin / 100;
+  const denom = 1 - targetR;
+
+  if (denom <= 0) {
+    showToast('목표마진율이 100% 이상일 수 없습니다', 'error');
+    return;
+  }
+
+  const estimatedSellPrice = Math.ceil((totalBuy + fixedSellCost) / denom);
+
+  setInputNum('sellPrice', estimatedSellPrice);
+  calculateAll();
+  showToast('✓ 목표 ' + targetMargin + '% 달성 판매가: ' + formatWon(estimatedSellPrice), 'success');
+}
+
+function getSimulatorInputs() {
+  const num = (id) => parseNum(document.getElementById(id).value);
+  return {
+    model: document.getElementById('carModel').value,
+    year: Number(document.getElementById('carYear').value) || 0,
+    km: num('carKm'),
+    origin: document.getElementById('carOrigin').value,
+    buyPrice: num('buyPrice'),
+    heyFee: num('heyFee'),
+    officeFee: num('officeFee'),
+    officeInterest: num('officeInterest'),
+    holdMonths: Number(document.getElementById('holdMonths').value) || 1,
+    repairCost: num('repairCost'),
+    detailCost: num('detailCost'),
+    transportCost: num('transportCost'),
+    sellPrice: num('sellPrice'),
+    inspectionFee: num('inspectionFee')
+  };
+}
+
+function calculateAll() {
+  const d = getSimulatorInputs();
+
+  // 매입 총비용
+  const totalBuy = d.buyPrice + d.heyFee + d.repairCost + d.detailCost
+    + d.transportCost + d.officeFee + d.officeInterest;
+
+  // 매도 부대비용 = 성능점검비만
+  const totalSellCost = d.inspectionFee;
+
+  const netProfit = d.sellPrice - totalBuy - totalSellCost;
+  const margin = d.sellPrice > 0 ? (netProfit / d.sellPrice * 100) : 0;
+  const monthlyProfit = d.holdMonths > 0 ? Math.floor(netProfit / d.holdMonths) : 0;
+
+  const breakeven = totalBuy + totalSellCost;
+  const roi = totalBuy > 0 ? (netProfit / totalBuy * 100) : 0;
+
+  document.getElementById('totalBuyCost').textContent = formatWon(totalBuy);
+  document.getElementById('totalSellCost').textContent = formatWon(totalSellCost);
+  document.getElementById('netProfit').textContent = formatWon(netProfit);
+  document.getElementById('profitMargin').textContent = margin.toFixed(2) + '%';
+  document.getElementById('monthlyProfit').textContent = formatWon(monthlyProfit) + '/월';
+  document.getElementById('breakeven').textContent = formatWon(breakeven);
+  document.getElementById('roi').textContent = roi.toFixed(2) + '%';
+  document.getElementById('bdBuy').textContent = formatWon(totalBuy);
+  document.getElementById('bdSell').textContent = formatWon(totalSellCost);
+  document.getElementById('bdTotal').textContent = formatWon(totalBuy + totalSellCost);
+
+  const npEl = document.getElementById('netProfit');
+  npEl.classList.remove('profit-positive', 'profit-negative', 'profit-zero');
+  if (netProfit > 0) npEl.classList.add('profit-positive');
+  else if (netProfit < 0) npEl.classList.add('profit-negative');
+  else npEl.classList.add('profit-zero');
+
+  updateGrade(margin, d.sellPrice, d.holdMonths, netProfit);
+}
+
+function updateGrade(margin, sellPrice, holdMonths, netProfit) {
+  const gradeBox = document.getElementById('resultGrade');
+  const icon = document.getElementById('gradeIcon');
+  const label = document.getElementById('gradeLabel');
+  const desc = document.getElementById('gradeDesc');
+  const warnings = document.getElementById('warnings');
+
+  gradeBox.classList.remove('grade-recommend', 'grade-normal', 'grade-bad');
+  warnings.innerHTML = '';
+
+  if (sellPrice === 0) {
+    icon.textContent = '?';
+    label.textContent = '판단 대기';
+    desc.textContent = '매입가와 판매가를 입력해주세요';
+    return;
+  }
+
+  if (margin >= state.settings.recommend) {
+    gradeBox.classList.add('grade-recommend');
+    icon.textContent = '✓';
+    label.textContent = '추천';
+    desc.textContent = '순이익률 ' + margin.toFixed(1) + '% — 매입을 추천합니다';
+  } else if (margin >= state.settings.normal) {
+    gradeBox.classList.add('grade-normal');
+    icon.textContent = '–';
+    label.textContent = '보통';
+    desc.textContent = '순이익률 ' + margin.toFixed(1) + '% — 신중한 검토가 필요합니다';
+  } else {
+    gradeBox.classList.add('grade-bad');
+    icon.textContent = '✕';
+    label.textContent = '비추천';
+    desc.textContent = '순이익률 ' + margin.toFixed(1) + '% — 매입을 권하지 않습니다';
+  }
+
+  if (netProfit < 0) {
+    warnings.innerHTML += '<div class="warning-item">⚠ 예상 순손실 발생: ' + formatWon(Math.abs(netProfit)) + '</div>';
+  }
+  const holdDaysEst = holdMonths * 30;
+  if (holdDaysEst > state.settings.warnDays) {
+    warnings.innerHTML += '<div class="warning-item">⚠ 보유 예상(' + holdMonths + '개월 ≈ ' + Math.round(holdDaysEst) + '일)이 경고 기준(' + state.settings.warnDays + '일)을 초과합니다</div>';
+  }
+}
+
+function resetSimulator() {
+  document.querySelectorAll('#tab-simulator input').forEach(input => {
+    if (input.type === 'number' || input.type === 'text') input.value = '';
+  });
+  document.getElementById('holdMonths').value = 1;
+  document.getElementById('carOrigin').value = 'domestic';
+  setInputNum('inspectionFee', state.settings.inspectionFee);
+  state.editingId = null;
+  document.getElementById('editBadge').style.display = 'none';
+  document.getElementById('btnCancelEdit').style.display = 'none';
+  document.getElementById('btnSave').textContent = '재고에 등록';
+  calculateAll();
+  showToast('시뮬레이터를 초기화했습니다');
+}
+
+function cancelEdit() {
+  resetSimulator();
+  showToast('수정을 취소했습니다');
+}
+
+function saveToInventory() {
+  const d = getSimulatorInputs();
+  if (!d.model || d.buyPrice === 0) {
+    showToast('차종과 매입가를 입력해주세요', 'error');
+    return;
+  }
+
+  const totalBuy = d.buyPrice + d.heyFee + d.repairCost + d.detailCost
+    + d.transportCost + d.officeFee + d.officeInterest;
+  const totalSellCost = d.inspectionFee;
+  const netProfit = d.sellPrice - totalBuy - totalSellCost;
+  const margin = d.sellPrice > 0 ? (netProfit / d.sellPrice * 100) : 0;
+
+  if (state.editingId) {
+    const idx = state.inventory.findIndex(i => i.id === state.editingId);
+    if (idx > -1) {
+      const existing = state.inventory[idx];
+      state.inventory[idx] = {
+        ...existing,
+        ...d,
+        totalBuy, totalSellCost, netProfit, margin
+      };
+      saveToStorage();
+      showToast('✓ "' + d.model + '" 정보를 수정했습니다', 'success');
+      resetSimulator();
+      document.querySelector('.nav-btn[data-tab="inventory"]').click();
+      return;
+    }
+  }
+
+  const item = {
+    id: Date.now().toString(),
+    ...d,
+    totalBuy, totalSellCost, netProfit, margin,
+    status: 'holding',
+    buyDate: new Date().toISOString(),
+    sellDate: null
+  };
+
+  state.inventory.push(item);
+  saveToStorage();
+  showToast('✓ "' + d.model + '" 재고 등록 완료', 'success');
+  resetSimulator();
+}
+
+function editItem(id) {
+  const item = state.inventory.find(i => i.id === id);
+  if (!item) return;
+
+  state.editingId = id;
+
+  document.getElementById('carModel').value = item.model || '';
+  document.getElementById('carYear').value = item.year || '';
+  setInputNum('carKm', item.km);
+  document.getElementById('carOrigin').value = item.origin || 'domestic';
+
+  setInputNum('buyPrice', item.buyPrice);
+  setInputNum('heyFee', item.heyFee);
+  setInputNum('officeFee', item.officeFee);
+  setInputNum('officeInterest', item.officeInterest);
+  document.getElementById('holdMonths').value = item.holdMonths || 1;
+  setInputNum('repairCost', item.repairCost);
+  setInputNum('detailCost', item.detailCost);
+  setInputNum('transportCost', item.transportCost);
+
+  setInputNum('sellPrice', item.sellPrice);
+  setInputNum('inspectionFee', item.inspectionFee || state.settings.inspectionFee);
+
+  document.getElementById('editBadge').style.display = 'inline-block';
+  document.getElementById('btnCancelEdit').style.display = 'inline-block';
+  document.getElementById('btnSave').textContent = '수정 저장';
+
+  document.querySelector('.nav-btn[data-tab="simulator"]').click();
+  calculateAll();
+  showToast('✏️ "' + item.model + '" 수정 모드 진입', 'success');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderInventory() {
+  const filter = document.getElementById('inventoryFilter').value;
+  const list = document.getElementById('inventoryList');
+  let items = [...state.inventory];
+
+  if (filter === 'holding') items = items.filter(i => i.status === 'holding');
+  if (filter === 'sold') items = items.filter(i => i.status === 'sold');
+  if (filter === 'warning') {
+    items = items.filter(i => i.status === 'holding' && daysSince(i.buyDate) > state.settings.warnDays);
+  }
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>' +
+      '<div class="empty-title">표시할 차량이 없습니다</div>' +
+      '<div class="empty-desc">시뮬레이터에서 차량을 분석한 뒤 "재고에 등록" 버튼을 눌러주세요</div></div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const days = daysSince(item.buyDate);
+    const isWarning = item.status === 'holding' && days > state.settings.warnDays;
+    const statusClass = item.status === 'sold' ? 'sold' : (isWarning ? 'warning' : 'holding');
+    const statusText = item.status === 'sold' ? '판매완료' : (isWarning ? '장기보유' : '보유중');
+    const profitColor = item.netProfit > 0 ? 'var(--success)' : 'var(--danger)';
+
+    let actionsHtml = '<button class="primary" data-action="edit" data-id="' + item.id + '">✏ 수정</button>';
+    if (item.status === 'holding') {
+      actionsHtml += '<button class="success" data-action="sell" data-id="' + item.id + '">판매완료</button>';
+    } else {
+      actionsHtml += '<button data-action="restore" data-id="' + item.id + '">↶ 보유로 복구</button>';
+    }
+    actionsHtml += '<button class="danger" data-action="delete" data-id="' + item.id + '">삭제</button>';
+
+    return '<div class="inventory-item">' +
+      '<div class="inv-info">' +
+        '<h4>' + escapeHtml(item.model || '미상') + '</h4>' +
+        '<div class="inv-meta">' + (item.year || '?') + '년식 · ' + formatNum(item.km) + 'km · 보유 ' + days + '일째</div>' +
+      '</div>' +
+      '<div class="inv-cell"><div class="inv-cell-label">매입 총비용</div>' +
+        '<div class="inv-cell-value">' + formatWon(item.totalBuy) + '</div></div>' +
+      '<div class="inv-cell"><div class="inv-cell-label">예상 순이익</div>' +
+        '<div class="inv-cell-value" style="color:' + profitColor + '">' + formatWon(item.netProfit) + '</div></div>' +
+      '<div><span class="inv-status ' + statusClass + '">' + statusText + '</span></div>' +
+      '<div class="inv-actions">' + actionsHtml + '</div>' +
+    '</div>';
+  }).join('');
+
+  list.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (action === 'edit') editItem(id);
+      else if (action === 'sell') markAsSold(id);
+      else if (action === 'restore') restoreToHolding(id);
+      else if (action === 'delete') deleteItem(id);
+    });
+  });
+}
+
+function markAsSold(id) {
+  const item = state.inventory.find(i => i.id === id);
+  if (!item) return;
+  item.status = 'sold';
+  item.sellDate = new Date().toISOString();
+  saveToStorage();
+  renderInventory();
+  renderDashboard();
+  showToast('✓ "' + item.model + '" 판매 처리 완료', 'success');
+}
+
+function restoreToHolding(id) {
+  const item = state.inventory.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm('"' + item.model + '"을(를) 다시 보유 상태로 되돌리시겠습니까?')) return;
+  item.status = 'holding';
+  item.sellDate = null;
+  saveToStorage();
+  renderInventory();
+  renderDashboard();
+  showToast('↶ "' + item.model + '" 보유 상태로 복구되었습니다', 'success');
+}
+
+function deleteItem(id) {
+  if (!confirm('이 차량을 삭제하시겠습니까?')) return;
+  state.inventory = state.inventory.filter(i => i.id !== id);
+  saveToStorage();
+  renderInventory();
+  renderDashboard();
+  showToast('삭제되었습니다');
+}
+
+// ===== 이자 계산 헬퍼 =====
+// 실제 보유한 일수 기준으로 누적 이자 계산
+function calcAccruedInterest(item) {
+  const monthlyRate = state.settings.loanRate / 100;
+  const startDate = new Date(item.buyDate);
+  const endDate = item.sellDate ? new Date(item.sellDate) : new Date();
+  const diffDays = Math.max(0, (endDate - startDate) / (1000 * 60 * 60 * 24));
+  const months = diffDays / 30;
+  return Math.floor(item.buyPrice * monthlyRate * months);
+}
+
+// 특정 월에 발생한 이자 (해당 월에 보유했던 일수 × 일이자)
+function calcInterestForMonth(item, year, month) {
+  const monthlyRate = state.settings.loanRate / 100;
+  const dailyRate = monthlyRate / 30; // 일이자율
+
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+  const buyDate = new Date(item.buyDate);
+  const sellDate = item.sellDate ? new Date(item.sellDate) : new Date();
+
+  const periodStart = buyDate > monthStart ? buyDate : monthStart;
+  const periodEnd = sellDate < monthEnd ? sellDate : monthEnd;
+
+  if (periodEnd < periodStart) return 0;
+
+  const days = Math.max(0, (periodEnd - periodStart) / (1000 * 60 * 60 * 24));
+  return Math.floor(item.buyPrice * dailyRate * days);
+}
+
+function renderInterestDashboard() {
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  // 이번 달 발생 이자 (보유 + 판매완료 모두 포함)
+  const thisMonthInterest = state.inventory.reduce((sum, item) => {
+    return sum + calcInterestForMonth(item, thisYear, thisMonth);
+  }, 0);
+
+  // 미정산 이자 (현재 보유분의 누적 이자)
+  const pendingInterest = state.inventory
+    .filter(i => i.status === 'holding')
+    .reduce((sum, item) => sum + calcAccruedInterest(item), 0);
+
+  // 월 예상 이자 부담 = 현재 보유 차량들의 매입가 합 × 월이자율
+  const monthlyRate = state.settings.loanRate / 100;
+  const totalHoldingPrice = state.inventory
+    .filter(i => i.status === 'holding')
+    .reduce((sum, item) => sum + item.buyPrice, 0);
+  const monthlyInterestBurden = Math.floor(totalHoldingPrice * monthlyRate);
+
+  document.getElementById('interestThisMonth').textContent = formatWon(thisMonthInterest);
+  document.getElementById('interestPending').textContent = formatWon(pendingInterest);
+  document.getElementById('interestMonthly').textContent = formatWon(monthlyInterestBurden);
+}
+
+function renderDashboard() {
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  const thisMonthBuys = state.inventory.filter(i => {
+    const d = new Date(i.buyDate);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+
+  const thisMonthSells = state.inventory.filter(i => {
+    if (!i.sellDate) return false;
+    const d = new Date(i.sellDate);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+
+  const totalBuyAmount = thisMonthBuys.reduce((s, i) => s + i.totalBuy, 0);
+  const totalSellAmount = thisMonthSells.reduce((s, i) => s + i.sellPrice, 0);
+  const totalProfit = thisMonthSells.reduce((s, i) => s + i.netProfit, 0);
+  const avgMargin = thisMonthSells.length > 0
+    ? thisMonthSells.reduce((s, i) => s + i.margin, 0) / thisMonthSells.length
+    : 0;
+
+  document.getElementById('kpiNetProfit').textContent = formatWon(totalProfit);
+  document.getElementById('kpiBuyCount').innerHTML = thisMonthBuys.length + '<span class="unit">대</span>';
+  document.getElementById('kpiBuyAmount').textContent = '총 ' + formatWon(totalBuyAmount);
+  document.getElementById('kpiSellCount').innerHTML = thisMonthSells.length + '<span class="unit">대</span>';
+  document.getElementById('kpiSellAmount').textContent = '총 ' + formatWon(totalSellAmount);
+  document.getElementById('kpiMargin').innerHTML = avgMargin.toFixed(1) + '<span class="unit">%</span>';
+
+  let grade = '데이터 부족';
+  if (avgMargin >= state.settings.recommend) grade = '우수';
+  else if (avgMargin >= state.settings.normal) grade = '보통';
+  else if (avgMargin > 0) grade = '주의';
+  document.getElementById('kpiMarginGrade').textContent = grade;
+
+  const holdings = state.inventory.filter(i => i.status === 'holding');
+  const warningCount = holdings.filter(i => daysSince(i.buyDate) > state.settings.warnDays).length;
+  const totalCapital = holdings.reduce((s, i) => s + i.totalBuy, 0);
+  const avgDays = holdings.length > 0
+    ? Math.round(holdings.reduce((s, i) => s + daysSince(i.buyDate), 0) / holdings.length)
+    : 0;
+
+  document.getElementById('stockCount').textContent = holdings.length + '대';
+  document.getElementById('stockAvgDays').textContent = avgDays + '일';
+  document.getElementById('stockCapital').textContent = formatWon(totalCapital);
+  document.getElementById('stockWarning').textContent = warningCount + '대';
+
+  renderInterestDashboard();
+  renderMonthlyChart();
+  renderStockPieChart();
+  renderProfitChart();
+}
+
+function renderMonthlyChart() {
+  const ctx = document.getElementById('monthlyChart');
+  if (!ctx) return;
+  if (charts.monthly) charts.monthly.destroy();
+  const months = getLast6Months();
+  const buyData = months.map(m => state.inventory.filter(i => {
+    const d = new Date(i.buyDate);
+    return d.getMonth() === m.month && d.getFullYear() === m.year;
+  }).length);
+  const sellData = months.map(m => state.inventory.filter(i => {
+    if (!i.sellDate) return false;
+    const d = new Date(i.sellDate);
+    return d.getMonth() === m.month && d.getFullYear() === m.year;
+  }).length);
+  charts.monthly = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months.map(m => (m.month + 1) + '월'),
+      datasets: [
+        { label: '매입', data: buyData, backgroundColor: 'rgba(96, 165, 250, 0.7)', borderRadius: 4 },
+        { label: '매도', data: sellData, backgroundColor: 'rgba(212, 165, 116, 0.85)', borderRadius: 4 }
+      ]
+    },
+    options: chartCommonOptions()
+  });
+}
+
+function renderStockPieChart() {
+  const ctx = document.getElementById('stockPieChart');
+  if (!ctx) return;
+  if (charts.stockPie) charts.stockPie.destroy();
+  const holdings = state.inventory.filter(i => i.status === 'holding');
+  const fresh = holdings.filter(i => daysSince(i.buyDate) <= state.settings.warnDays / 2).length;
+  const mid = holdings.filter(i => {
+    const d = daysSince(i.buyDate);
+    return d > state.settings.warnDays / 2 && d <= state.settings.warnDays;
+  }).length;
+  const old = holdings.filter(i => daysSince(i.buyDate) > state.settings.warnDays).length;
+  charts.stockPie = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['신규', '중간', '장기보유'],
+      datasets: [{
+        data: [fresh, mid, old],
+        backgroundColor: ['rgba(74, 222, 128, 0.8)', 'rgba(251, 191, 36, 0.8)', 'rgba(248, 113, 113, 0.8)'],
+        borderColor: '#1a2030', borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#a8b2c4', font: { size: 11, family: 'IBM Plex Sans KR' }, padding: 12 } } }
+    }
+  });
+}
+
+function renderProfitChart() {
+  const ctx = document.getElementById('profitChart');
+  if (!ctx) return;
+  if (charts.profit) charts.profit.destroy();
+  const months = getLast6Months();
+  const profitData = months.map(m => {
+    const profits = state.inventory.filter(i => {
+      if (!i.sellDate) return false;
+      const d = new Date(i.sellDate);
+      return d.getMonth() === m.month && d.getFullYear() === m.year;
+    }).reduce((s, i) => s + i.netProfit, 0);
+    return Math.round(profits / 10000);
+  });
+  charts.profit = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months.map(m => (m.month + 1) + '월'),
+      datasets: [{
+        label: '순이익 (만원)',
+        data: profitData,
+        borderColor: '#d4a574',
+        backgroundColor: 'rgba(212, 165, 116, 0.15)',
+        borderWidth: 2, fill: true, tension: 0.4,
+        pointBackgroundColor: '#d4a574', pointBorderColor: '#1a2030',
+        pointBorderWidth: 2, pointRadius: 5
+      }]
+    },
+    options: chartCommonOptions()
+  });
+}
+
+function chartCommonOptions() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { color: '#a8b2c4', font: { size: 12, family: 'IBM Plex Sans KR' }, padding: 16, usePointStyle: true } },
+      tooltip: { backgroundColor: '#1a2030', borderColor: '#3a4458', borderWidth: 1, titleColor: '#e8ecf3', bodyColor: '#a8b2c4', padding: 12, cornerRadius: 6 }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(58, 68, 88, 0.3)' }, ticks: { color: '#6b7689', font: { size: 11 } } },
+      y: { grid: { color: 'rgba(58, 68, 88, 0.3)' }, ticks: { color: '#6b7689', font: { size: 11 } }, beginAtZero: true }
+    }
+  };
+}
+
+function initSettings() {
+  document.getElementById('setRecommend').value = state.settings.recommend;
+  document.getElementById('setNormal').value = state.settings.normal;
+  document.getElementById('setWarnDays').value = state.settings.warnDays;
+  setInputNum('setInspectionFee', state.settings.inspectionFee);
+  setInputNum('setOfficeBase', state.settings.officeBase);
+  setInputNum('setOfficeThreshold', state.settings.officeThreshold);
+  document.getElementById('setOfficeRate').value = state.settings.officeRate;
+  document.getElementById('setLoanRate').value = state.settings.loanRate;
+}
+
+function renderHeyFeeTable() {
+  const body = document.getElementById('heyFeeBody');
+  body.innerHTML = state.settings.heyFees.map((tier, i) => {
+    return '<tr>' +
+      '<td>' + escapeHtml(tier.label) + '</td>' +
+      '<td><input type="text" inputmode="numeric" data-numeric data-fee-idx="' + i + '" data-fee-type="dom" value="' + Number(tier.dom).toLocaleString('ko-KR') + '">원</td>' +
+      '<td><input type="text" inputmode="numeric" data-numeric data-fee-idx="' + i + '" data-fee-type="imp" value="' + Number(tier.imp).toLocaleString('ko-KR') + '">원</td>' +
+    '</tr>';
+  }).join('');
+
+  body.querySelectorAll('input[data-numeric]').forEach(input => attachNumericFormat(input));
+}
+
+function saveSettings() {
+  state.settings.recommend = Number(document.getElementById('setRecommend').value) || 10;
+  state.settings.normal = Number(document.getElementById('setNormal').value) || 7;
+  state.settings.warnDays = Number(document.getElementById('setWarnDays').value) || 45;
+  state.settings.inspectionFee = parseNum(document.getElementById('setInspectionFee').value);
+  state.settings.officeBase = parseNum(document.getElementById('setOfficeBase').value);
+  state.settings.officeThreshold = parseNum(document.getElementById('setOfficeThreshold').value);
+  state.settings.officeRate = Number(document.getElementById('setOfficeRate').value) || 0;
+  state.settings.loanRate = Number(document.getElementById('setLoanRate').value) || 0;
+
+  document.querySelectorAll('#heyFeeBody input[data-fee-idx]').forEach(input => {
+    const idx = Number(input.dataset.feeIdx);
+    const type = input.dataset.feeType;
+    state.settings.heyFees[idx][type] = parseNum(input.value);
+  });
+
+  saveToStorage();
+  showToast('✓ 설정이 저장되었습니다', 'success');
+
+  autoCalcOffice();
+  autoCalcHeyFee();
+  setInputNum('inspectionFee', state.settings.inspectionFee);
+  calculateAll();
+  renderDashboard();
+}
+
+function formatWon(num) {
+  if (num === 0 || !num) return '0원';
+  const sign = num < 0 ? '-' : '';
+  const abs = Math.abs(num);
+  if (abs >= 100000000) return sign + (abs / 100000000).toFixed(2) + '억원';
+  if (abs >= 10000) return sign + (abs / 10000).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '만원';
+  return sign + abs.toLocaleString('ko-KR') + '원';
+}
+
+function formatNum(num) { return (num || 0).toLocaleString('ko-KR'); }
+
+function daysSince(dateStr) {
+  if (!dateStr) return 0;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function getLast6Months() {
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ month: d.getMonth(), year: d.getFullYear() });
+  }
+  return months;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + (type || '');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
