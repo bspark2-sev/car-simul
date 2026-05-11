@@ -427,12 +427,14 @@ body::before {
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px 28px;
-  display: grid; grid-template-columns: 1fr auto auto auto auto;
+  display: grid; grid-template-columns: 1fr auto auto auto auto auto;
   gap: 28px; align-items: center;
   transition: all 0.2s;
 }
 
 .inventory-item:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+
+.inv-cells { display: contents; }
 
 .inv-info h4 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
 .inv-meta { font-size: 15px; color: var(--text-secondary); font-family: var(--font-mono); }
@@ -576,9 +578,26 @@ body::before {
 .toast.error { border-left-color: var(--danger); }
 
 @media (max-width: 1200px) {
-  .inventory-item { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .inventory-item {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 20px 22px;
+  }
+  .inv-info { order: 1; }
+  .inv-cells {
+    order: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
   .inv-cell { text-align: left; }
-  .inv-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .inv-status-wrap { order: 3; }
+  .inv-actions { order: 4; justify-content: flex-start; }
+  .inv-actions button { flex: 1; min-width: 0; text-align: center; }
 }
 
 @media (max-width: 1024px) {
@@ -591,11 +610,10 @@ body::before {
   .dash-row { grid-template-columns: 1fr; }
   .sim-layout { grid-template-columns: 1fr; }
   .sim-result-area { position: relative; top: 0; }
-  .inventory-item { grid-template-columns: 1fr 1fr; gap: 16px; }
 }
 
 @media (max-width: 720px) {
-  .nav-btn { padding: 8px 14px; font-size: 12px; white-space: nowrap; }
+  .nav-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
   .container { padding: 16px; }
   .page-head { flex-direction: column; align-items: flex-start; gap: 16px; }
   .page-title { font-size: 26px; }
@@ -603,9 +621,11 @@ body::before {
   .kpi-card { padding: 14px; }
   .kpi-value { font-size: 24px; }
   .form-grid { grid-template-columns: 1fr; }
-  .inventory-item { grid-template-columns: 1fr; gap: 12px; }
-  .inv-cell { text-align: left; }
-  .inv-actions { justify-content: flex-start; }
+  .inventory-item { padding: 18px 18px; }
+  .inv-info h4 { font-size: 20px; }
+  .inv-meta { font-size: 14px; }
+  .inv-cells { grid-template-columns: 1fr 1fr; }
+  .inv-cell-value { font-size: 17px; }
   .action-row { flex-direction: column-reverse; }
   .action-row button { width: 100%; }
   .brand-sub { display: none; }
@@ -1562,11 +1582,13 @@ function renderInventory() {
         tagsHtml +
         noteHtml +
       '</div>' +
-      '<div class="inv-cell"><div class="inv-cell-label">매입 총비용</div>' +
-        '<div class="inv-cell-value">' + formatWon(item.totalBuy) + '</div></div>' +
-      '<div class="inv-cell"><div class="inv-cell-label">예상 순이익</div>' +
-        '<div class="inv-cell-value" style="color:' + profitColor + '">' + formatWon(item.netProfit) + '</div></div>' +
-      '<div><span class="inv-status ' + statusClass + '">' + statusText + '</span></div>' +
+      '<div class="inv-cells">' +
+        '<div class="inv-cell"><div class="inv-cell-label">매입 총비용</div>' +
+          '<div class="inv-cell-value">' + formatWon(item.totalBuy) + '</div></div>' +
+        '<div class="inv-cell"><div class="inv-cell-label">예상 순이익</div>' +
+          '<div class="inv-cell-value" style="color:' + profitColor + '">' + formatWon(item.netProfit) + '</div></div>' +
+      '</div>' +
+      '<div class="inv-status-wrap"><span class="inv-status ' + statusClass + '">' + statusText + '</span></div>' +
       '<div class="inv-actions">' + actionsHtml + '</div>' +
     '</div>';
   }).join('');
