@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <style>
 :root {
   --bg-deep: #0d1117;
@@ -113,6 +115,45 @@ body::before {
 .nav-btn.active { background: var(--accent); color: var(--bg-deep); font-weight: 600; }
 
 .top-spacer { justify-self: end; }
+
+.sync-status {
+  justify-self: end;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.sync-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.sync-status.connecting .sync-dot { background: var(--warning); animation: pulse 1.5s ease-in-out infinite; }
+.sync-status.connecting { border-color: rgba(251, 191, 36, 0.3); }
+
+.sync-status.online .sync-dot { background: var(--success); box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+.sync-status.online { border-color: rgba(74, 222, 128, 0.3); color: var(--success); }
+
+.sync-status.offline .sync-dot { background: var(--danger); }
+.sync-status.offline { border-color: rgba(248, 113, 113, 0.3); color: var(--danger); }
+
+.sync-status.syncing .sync-dot { background: var(--info); animation: pulse 0.8s ease-in-out infinite; }
+.sync-status.syncing { border-color: rgba(96, 165, 250, 0.3); color: var(--info); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
 
 .container { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
 
@@ -606,6 +647,7 @@ body::before {
   .brand { justify-self: center; }
   .top-nav { justify-self: center; width: 100%; overflow-x: auto; }
   .top-spacer { display: none; }
+  .sync-status { justify-self: center; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .dash-row { grid-template-columns: 1fr; }
   .sim-layout { grid-template-columns: 1fr; }
@@ -658,7 +700,10 @@ body::before {
     <button class="nav-btn" data-tab="inventory">재고관리</button>
     <button class="nav-btn" data-tab="settings">설정</button>
   </nav>
-  <div class="top-spacer"></div>
+  <div class="sync-status" id="syncStatus">
+    <span class="sync-dot" id="syncDot"></span>
+    <span class="sync-text" id="syncText">연결 중...</span>
+  </div>
 </header>
 
 <main class="container">
@@ -1053,6 +1098,32 @@ body::before {
         </table>
       </div>
 
+      <div class="form-card">
+        <h3 class="form-title">☁️ 데이터 동기화</h3>
+        <p class="settings-desc">현재 모든 데이터는 Firebase에 저장되어 컴퓨터·모바일·태블릿에서 자동으로 동기화됩니다. 인터넷이 끊겨도 작동하며, 재연결 시 자동으로 동기화됩니다.</p>
+        <div class="form-grid">
+          <div class="field full">
+            <label>현재 연결 상태</label>
+            <div id="syncDetailStatus" style="padding: 14px 16px; background: var(--bg-input); border-radius: var(--radius-sm); font-size: 15px; color: var(--text-primary); border-left: 3px solid var(--border-strong);">
+              확인 중...
+            </div>
+          </div>
+        </div>
+        <p class="settings-desc" style="margin-top: 16px;">
+          ⚠ <strong>주의:</strong> 현재 보안 규칙은 "공용 데이터" 모드입니다. URL과 키를 아는 사람은 누구나 데이터를 보고 수정할 수 있으니, 이 페이지의 주소를 외부에 공유하지 마세요.
+        </p>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title">💾 데이터 백업/복원</h3>
+        <p class="settings-desc">데이터를 JSON 파일로 내보내거나, 이전에 백업한 파일에서 복원할 수 있습니다. 정기적인 백업을 권장합니다.</p>
+        <div class="action-row" style="justify-content: flex-start;">
+          <button class="btn-secondary" id="btnExportData">📤 JSON으로 내보내기</button>
+          <button class="btn-secondary" id="btnImportData">📥 JSON에서 가져오기</button>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        </div>
+      </div>
+
       <div class="action-row">
         <button class="btn-primary" id="btnSaveSettings">설정 저장</button>
       </div>
@@ -1065,8 +1136,38 @@ body::before {
 <div class="toast" id="toast"></div>
 
 <script>
+// ============================================
+// Firebase 설정
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDrIQPhb5nOXAe8DVYxE601XGm4GioW8CM",
+  authDomain: "car-simul.firebaseapp.com",
+  databaseURL: "https://car-simul-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "car-simul",
+  storageBucket: "car-simul.firebasestorage.app",
+  messagingSenderId: "267586988671",
+  appId: "1:267586988671:web:4f9b92471ff5a9f84a6d4a",
+  measurementId: "G-7JY4FB1GFV"
+};
+
+// Firebase 초기화
+let firebaseApp = null;
+let firebaseDb = null;
+let firebaseEnabled = false;
+
+try {
+  firebaseApp = firebase.initializeApp(firebaseConfig);
+  firebaseDb = firebase.database();
+  firebaseEnabled = true;
+} catch (e) {
+  console.error('Firebase 초기화 실패:', e);
+  firebaseEnabled = false;
+}
+
 const STORAGE_KEY = 'autoLedger_v5';
 const SETTINGS_KEY = 'autoLedger_settings_v5';
+const FB_INVENTORY_PATH = 'shared/inventory';
+const FB_SETTINGS_PATH = 'shared/settings';
 
 const DEFAULT_HEY_FEES = [
   { min: 0,        max: 999999,    label: '100만 원 미만',         dom: 55000,  imp: 55000 },
@@ -1100,8 +1201,14 @@ let state = {
 
 let charts = {};
 
+// Firebase 동기화 제어 변수
+let initialDataLoaded = false;
+let suppressFirebaseWrite = false; // Firebase에서 받은 데이터로 state 업데이트할 때 다시 쓰지 않도록
+let saveTimeout = null; // 디바운싱용
+let isOnline = navigator.onLine;
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadFromStorage();
+  loadFromLocalCache(); // 즉시 캐시된 데이터 로드 (오프라인 대응)
   initTabs();
   initSimulator();
   initButtons();
@@ -1111,9 +1218,138 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   renderInventory();
   setTimeout(calculateAll, 100);
+
+  // Firebase 실시간 동기화 시작
+  initFirebaseSync();
+
+  // 온라인/오프라인 감지
+  window.addEventListener('online', () => {
+    isOnline = true;
+    updateSyncStatus('online', '실시간 동기화');
+  });
+  window.addEventListener('offline', () => {
+    isOnline = false;
+    updateSyncStatus('offline', '오프라인 (재연결 대기)');
+  });
 });
 
-function loadFromStorage() {
+// ============================================
+// 동기화 상태 UI 업데이트
+// ============================================
+function updateSyncStatus(status, text) {
+  const el = document.getElementById('syncStatus');
+  const txt = document.getElementById('syncText');
+  if (!el) return;
+  el.classList.remove('connecting', 'online', 'offline', 'syncing');
+  el.classList.add(status);
+  if (txt) txt.textContent = text;
+
+  // 설정 페이지의 상세 상태도 업데이트
+  const detail = document.getElementById('syncDetailStatus');
+  if (detail) {
+    let icon = '⚪';
+    let color = 'var(--border-strong)';
+    if (status === 'online') { icon = '🟢'; color = 'var(--success)'; }
+    else if (status === 'syncing') { icon = '🔵'; color = 'var(--info)'; }
+    else if (status === 'offline') { icon = '🔴'; color = 'var(--danger)'; }
+    else if (status === 'connecting') { icon = '🟡'; color = 'var(--warning)'; }
+
+    detail.style.borderLeftColor = color;
+    detail.innerHTML = icon + ' ' + text +
+      (firebaseEnabled ? '' : ' <span style="color: var(--text-muted); font-size: 13px;">(Firebase 라이브러리 로드 실패)</span>');
+  }
+}
+
+// ============================================
+// Firebase 실시간 동기화
+// ============================================
+function initFirebaseSync() {
+  if (!firebaseEnabled) {
+    updateSyncStatus('offline', '로컬 전용 모드');
+    return;
+  }
+
+  updateSyncStatus('connecting', '연결 중...');
+
+  // 연결 상태 모니터링
+  const connectedRef = firebaseDb.ref('.info/connected');
+  connectedRef.on('value', (snap) => {
+    if (snap.val() === true) {
+      updateSyncStatus('online', '실시간 동기화');
+    } else {
+      updateSyncStatus('offline', '오프라인 (재연결 대기)');
+    }
+  });
+
+  // 재고 데이터 실시간 구독
+  const inventoryRef = firebaseDb.ref(FB_INVENTORY_PATH);
+  inventoryRef.on('value', (snap) => {
+    const data = snap.val();
+    suppressFirebaseWrite = true;
+
+    if (data && Array.isArray(data)) {
+      state.inventory = data;
+    } else if (data && typeof data === 'object') {
+      // 객체 형태로 저장된 경우 배열로 변환
+      state.inventory = Object.values(data);
+    } else {
+      state.inventory = [];
+    }
+
+    // 로컬 캐시에도 저장
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ inventory: state.inventory }));
+    } catch (e) { console.warn('Local cache save failed', e); }
+
+    initialDataLoaded = true;
+    renderInventory();
+    renderDashboard();
+    suppressFirebaseWrite = false;
+  }, (err) => {
+    console.error('Firebase 재고 구독 실패:', err);
+    updateSyncStatus('offline', '동기화 오류 (로컬 모드)');
+  });
+
+  // 설정 데이터 실시간 구독
+  const settingsRef = firebaseDb.ref(FB_SETTINGS_PATH);
+  settingsRef.on('value', (snap) => {
+    const data = snap.val();
+    if (!data) return;
+    suppressFirebaseWrite = true;
+
+    // heyFees는 배열로 복원
+    const incoming = { ...data };
+    if (incoming.heyFees && !Array.isArray(incoming.heyFees)) {
+      incoming.heyFees = Object.values(incoming.heyFees);
+    }
+    // null을 Infinity로 다시 변환
+    if (Array.isArray(incoming.heyFees)) {
+      incoming.heyFees = incoming.heyFees.map((f, i) => ({
+        ...f,
+        max: (f.max === null || f.max === undefined) ? DEFAULT_HEY_FEES[i].max : f.max
+      }));
+    }
+    state.settings = { ...state.settings, ...incoming };
+
+    // 로컬 캐시 저장
+    try {
+      const cached = { ...state.settings };
+      cached.heyFees = state.settings.heyFees.map(f => ({
+        ...f, max: f.max === Infinity ? null : f.max
+      }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(cached));
+    } catch (e) { console.warn('Local settings cache save failed', e); }
+
+    initSettings();
+    renderHeyFeeTable();
+    renderDashboard();
+    suppressFirebaseWrite = false;
+  }, (err) => {
+    console.error('Firebase 설정 구독 실패:', err);
+  });
+}
+
+function loadFromLocalCache() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -1134,10 +1370,11 @@ function loadFromStorage() {
         }));
       }
     }
-  } catch (e) { console.error('Storage load error:', e); }
+  } catch (e) { console.error('Local cache load error:', e); }
 }
 
 function saveToStorage() {
+  // 1) 로컬 캐시 저장 (즉시)
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ inventory: state.inventory }));
     const settingsToSave = { ...state.settings };
@@ -1151,6 +1388,48 @@ function saveToStorage() {
     delete settingsToSave.editingId;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsToSave));
   } catch (e) { console.error('Storage save error:', e); }
+
+  // 2) Firebase 동기화 (디바운싱)
+  if (!firebaseEnabled || suppressFirebaseWrite) return;
+
+  if (saveTimeout) clearTimeout(saveTimeout);
+  updateSyncStatus('syncing', '저장 중...');
+
+  saveTimeout = setTimeout(() => {
+    syncToFirebase();
+  }, 300);
+}
+
+function syncToFirebase() {
+  if (!firebaseEnabled) return;
+
+  try {
+    // 재고 저장 (배열 → Firebase에선 객체로 저장될 수 있어, 인덱스로 푸시)
+    const inventoryToPush = state.inventory.length === 0 ? null : state.inventory;
+    firebaseDb.ref(FB_INVENTORY_PATH).set(inventoryToPush).catch(err => {
+      console.error('Firebase 재고 저장 실패:', err);
+      updateSyncStatus('offline', '저장 실패 (로컬만 저장됨)');
+    });
+
+    // 설정 저장 (Infinity는 null로 변환)
+    const settingsToSync = { ...state.settings };
+    settingsToSync.heyFees = state.settings.heyFees.map(f => ({
+      min: f.min,
+      max: f.max === Infinity ? null : f.max,
+      label: f.label,
+      dom: f.dom,
+      imp: f.imp
+    }));
+    firebaseDb.ref(FB_SETTINGS_PATH).set(settingsToSync).catch(err => {
+      console.error('Firebase 설정 저장 실패:', err);
+    });
+
+    setTimeout(() => {
+      if (isOnline) updateSyncStatus('online', '실시간 동기화');
+    }, 400);
+  } catch (e) {
+    console.error('Firebase sync error:', e);
+  }
 }
 
 function initNumericInputs() {
@@ -1233,6 +1512,94 @@ function initButtons() {
   document.getElementById('btnCalcSellPrice').addEventListener('click', calculateSellPriceFromMargin);
   document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
   document.getElementById('inventoryFilter').addEventListener('change', renderInventory);
+
+  // 백업/복원
+  const exportBtn = document.getElementById('btnExportData');
+  if (exportBtn) exportBtn.addEventListener('click', exportData);
+  const importBtn = document.getElementById('btnImportData');
+  if (importBtn) importBtn.addEventListener('click', () => {
+    document.getElementById('importFileInput').click();
+  });
+  const importInput = document.getElementById('importFileInput');
+  if (importInput) importInput.addEventListener('change', importData);
+}
+
+function exportData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 'v5',
+    inventory: state.inventory,
+    settings: (() => {
+      const s = { ...state.settings };
+      s.heyFees = state.settings.heyFees.map(f => ({
+        ...f, max: f.max === Infinity ? null : f.max
+      }));
+      return s;
+    })()
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = 'auto-ledger-backup-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ 백업 파일을 내보냈습니다', 'success');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const payload = JSON.parse(ev.target.result);
+      if (!payload || typeof payload !== 'object') throw new Error('잘못된 형식');
+
+      const confirmMsg = '현재 데이터를 모두 덮어쓰고 백업 파일의 데이터로 복원합니다.\n' +
+        '재고: ' + (payload.inventory ? payload.inventory.length : 0) + '대\n' +
+        '진행하시겠습니까?';
+      if (!confirm(confirmMsg)) {
+        e.target.value = '';
+        return;
+      }
+
+      if (Array.isArray(payload.inventory)) {
+        state.inventory = payload.inventory;
+      }
+      if (payload.settings && typeof payload.settings === 'object') {
+        const incoming = { ...payload.settings };
+        if (Array.isArray(incoming.heyFees)) {
+          incoming.heyFees = incoming.heyFees.map((f, i) => ({
+            ...f, max: (f.max === null || f.max === undefined) ? DEFAULT_HEY_FEES[i].max : f.max
+          }));
+        }
+        state.settings = { ...state.settings, ...incoming };
+      }
+
+      saveToStorage();
+      initSettings();
+      renderHeyFeeTable();
+      renderInventory();
+      renderDashboard();
+      showToast('✓ 백업 파일에서 복원했습니다', 'success');
+    } catch (err) {
+      console.error('Import failed:', err);
+      showToast('✗ 파일을 읽을 수 없습니다: ' + err.message, 'error');
+    }
+    e.target.value = '';
+  };
+  reader.onerror = () => {
+    showToast('✗ 파일 읽기 실패', 'error');
+    e.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 function autoCalcOffice() {
