@@ -17,10 +17,10 @@
   --bg-input: #0e131c;
   --border: #2a3344;
   --border-strong: #3a4458;
-  --text-primary: #e8ecf3;
-  --text-secondary: #a8b2c4;
-  --text-muted: #6b7689;
-  --text-dim: #4a5468;
+  --text-primary: #f4f7fc;
+  --text-secondary: #c4cdde;
+  --text-muted: #8a95ab;
+  --text-dim: #5a6478;
   --accent: #d4a574;
   --accent-hover: #e0b585;
   --accent-soft: rgba(212, 165, 116, 0.12);
@@ -48,8 +48,8 @@ html, body {
   background: var(--bg-deep);
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -104,8 +104,8 @@ body::before {
 .nav-btn {
   background: transparent; border: none;
   color: var(--text-secondary);
-  padding: 8px 18px; border-radius: var(--radius-sm);
-  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  padding: 10px 22px; border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 15px; font-weight: 600;
   cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.3px;
 }
 
@@ -197,17 +197,17 @@ body::before {
   width: 4px; height: 100%; background: var(--accent);
 }
 
-.kpi-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+.kpi-label { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; font-weight: 600; }
 
 .kpi-value {
   font-family: var(--font-display);
-  font-size: 32px; font-weight: 600;
+  font-size: 36px; font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -1px; line-height: 1; margin-bottom: 8px;
+  letter-spacing: -1px; line-height: 1; margin-bottom: 10px;
 }
 
-.kpi-value .unit { font-size: 16px; color: var(--text-muted); margin-left: 4px; font-weight: 400; }
-.kpi-trend { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
+.kpi-value .unit { font-size: 18px; color: var(--text-secondary); margin-left: 4px; font-weight: 500; }
+.kpi-trend { font-size: 14px; color: var(--text-secondary); font-family: var(--font-mono); font-weight: 500; }
 
 .dash-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
 
@@ -227,15 +227,15 @@ body::before {
 
 .stock-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: var(--bg-input); border-radius: var(--radius-sm);
-  border-left: 2px solid var(--border-strong);
+  border-left: 3px solid var(--border-strong);
 }
 
 .stock-row.warning { border-left-color: var(--warning); }
-.stock-label { font-size: 13px; color: var(--text-secondary); }
+.stock-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
 
-.stock-value { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); font-size: 14px; }
+.stock-value { font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: 16px; }
 .stock-row.warning .stock-value { color: var(--warning); }
 
 .sim-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
@@ -249,9 +249,9 @@ body::before {
 
 .form-title {
   font-family: var(--font-display);
-  font-size: 18px; font-weight: 500;
+  font-size: 22px; font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20px; padding-bottom: 12px;
+  margin-bottom: 24px; padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -260,18 +260,18 @@ body::before {
 .field.full { grid-column: 1 / -1; }
 
 .field label {
-  font-size: 12px; color: var(--text-secondary); font-weight: 500;
+  font-size: 14px; color: var(--text-primary); font-weight: 600;
   display: flex; justify-content: space-between; align-items: baseline;
 }
 
-.field .hint { font-size: 10px; color: var(--text-muted); font-weight: 400; font-family: var(--font-mono); }
+.field .hint { font-size: 12px; color: var(--text-muted); font-weight: 500; font-family: var(--font-mono); }
 
 .field input, .field select {
-  background: var(--bg-input); border: 1px solid var(--border);
+  background: var(--bg-input); border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 11px 14px;
+  padding: 13px 16px;
   color: var(--text-primary);
-  font-family: var(--font-mono); font-size: 14px;
+  font-family: var(--font-mono); font-size: 16px;
   outline: none; transition: all 0.2s; width: 100%;
 }
 
@@ -283,7 +283,7 @@ body::before {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.field input.price-input { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; }
+.field input.price-input { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
 
 .field input.auto-fill {
   background: rgba(212, 165, 116, 0.05);
@@ -324,21 +324,21 @@ body::before {
 .btn-helper:hover { background: #7eb6ff; transform: translateY(-1px); }
 
 .subtotal {
-  margin-top: 20px; padding: 14px 18px;
+  margin-top: 20px; padding: 16px 20px;
   background: var(--bg-input); border-radius: var(--radius-sm);
   display: flex; justify-content: space-between; align-items: center;
-  border-left: 3px solid var(--accent);
+  border-left: 4px solid var(--accent);
 }
 
-.subtotal span { font-size: 13px; color: var(--text-secondary); }
-.subtotal strong { font-family: var(--font-mono); font-weight: 600; color: var(--accent); font-size: 16px; }
+.subtotal span { font-size: 15px; color: var(--text-primary); font-weight: 600; }
+.subtotal strong { font-family: var(--font-mono); font-weight: 700; color: var(--accent); font-size: 19px; }
 
 .action-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
 
 .btn-primary, .btn-secondary, .btn-danger {
-  padding: 12px 24px; border: none;
+  padding: 14px 28px; border: none;
   border-radius: var(--radius-sm);
-  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  font-family: var(--font-body); font-size: 15px; font-weight: 700;
   cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
 }
 
@@ -381,19 +381,19 @@ body::before {
 .grade-normal .grade-icon { background: var(--warning); color: var(--bg-deep); }
 .grade-bad .grade-icon { background: var(--danger); color: var(--bg-deep); }
 
-.grade-label { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text-primary); }
-.grade-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.grade-label { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text-primary); }
+.grade-desc { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
 
 .result-main { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
 
-.result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .result-row:last-child { border-bottom: none; }
-.result-row span { font-size: 13px; color: var(--text-secondary); }
-.result-row strong { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); font-size: 15px; }
+.result-row span { font-size: 15px; color: var(--text-secondary); font-weight: 500; }
+.result-row strong { font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: 17px; }
 
-.result-row.big { padding: 12px 0 16px; }
-.result-row.big span { font-size: 14px; font-weight: 500; color: var(--text-primary); }
-.result-row.big strong { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -1px; }
+.result-row.big { padding: 14px 0 18px; }
+.result-row.big span { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.result-row.big strong { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -1px; }
 
 .profit-positive { color: var(--success) !important; }
 .profit-negative { color: var(--danger) !important; }
@@ -402,23 +402,23 @@ body::before {
 .result-breakdown { padding: 16px 24px; background: var(--bg-input); border-top: 1px solid var(--border); }
 
 .result-breakdown h4 {
-  font-size: 11px; color: var(--text-muted);
+  font-size: 13px; color: var(--text-secondary);
   letter-spacing: 1px; text-transform: uppercase;
-  margin-bottom: 10px; font-weight: 500;
+  margin-bottom: 12px; font-weight: 700;
 }
 
-.breakdown-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; }
+.breakdown-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
 .breakdown-row span:first-child { color: var(--text-secondary); }
-.breakdown-row span:last-child { color: var(--text-primary); font-family: var(--font-mono); font-weight: 500; }
+.breakdown-row span:last-child { color: var(--text-primary); font-family: var(--font-mono); font-weight: 600; }
 
 .warnings { padding: 0 24px 16px; }
 
 .warning-item {
   background: var(--warning-soft);
   border-left: 3px solid var(--warning);
-  padding: 10px 14px; border-radius: var(--radius-sm);
-  font-size: 12px; color: var(--text-primary);
-  margin-top: 8px;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--text-primary); font-weight: 500;
+  margin-top: 10px;
 }
 
 .inventory-list { display: flex; flex-direction: column; gap: 12px; }
@@ -426,33 +426,64 @@ body::before {
 .inventory-item {
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px 24px;
+  padding: 24px 28px;
   display: grid; grid-template-columns: 1fr auto auto auto auto;
-  gap: 24px; align-items: center;
+  gap: 28px; align-items: center;
   transition: all 0.2s;
 }
 
 .inventory-item:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
 
-.inv-info h4 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
-.inv-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+.inv-info h4 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+.inv-meta { font-size: 15px; color: var(--text-secondary); font-family: var(--font-mono); }
+
+.inv-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.inv-tag {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  font-family: var(--font-body);
+}
+
+.inv-tag.tag-danger { background: var(--danger-soft); color: var(--danger); }
+.inv-tag.tag-warning { background: var(--warning-soft); color: var(--warning); }
+.inv-tag.tag-info { background: var(--info-soft); color: var(--info); }
+.inv-tag.tag-purple { background: var(--purple-soft); color: var(--purple); }
+.inv-tag.tag-success { background: var(--success-soft); color: var(--success); }
+.inv-tag.tag-neutral { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-strong); }
+
+.inv-note {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+
 .inv-cell { text-align: right; }
 
-.inv-cell-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
-.inv-cell-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.inv-cell-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; font-weight: 600; }
+.inv-cell-value { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--text-primary); }
 
-.inv-status { padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+.inv-status { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
 .inv-status.holding { background: var(--info-soft); color: var(--info); }
 .inv-status.sold { background: var(--success-soft); color: var(--success); }
 .inv-status.warning { background: var(--warning-soft); color: var(--warning); }
 
-.inv-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.inv-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .inv-actions button {
-  background: var(--bg-input); color: var(--text-secondary);
-  border: 1px solid var(--border);
-  padding: 6px 12px; border-radius: var(--radius-sm);
-  font-size: 11px; cursor: pointer;
+  background: var(--bg-input); color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  padding: 9px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer;
   font-family: var(--font-body); transition: all 0.2s;
   white-space: nowrap;
 }
@@ -543,6 +574,12 @@ body::before {
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.success { border-left-color: var(--success); }
 .toast.error { border-left-color: var(--danger); }
+
+@media (max-width: 1200px) {
+  .inventory-item { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .inv-cell { text-align: left; }
+  .inv-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
 
 @media (max-width: 1024px) {
   .container { padding: 20px; }
@@ -709,6 +746,59 @@ body::before {
                 <option value="domestic">국산차</option>
                 <option value="imported">수입차</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3 class="form-title">🔍 차량 상태 정보</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>사고 유무</label>
+              <select id="hasAccident">
+                <option value="no">무사고</option>
+                <option value="yes">사고이력 있음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>보험 이력 유무</label>
+              <select id="hasInsurance">
+                <option value="no">없음</option>
+                <option value="yes">있음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>썬루프 유무</label>
+              <select id="hasSunroof">
+                <option value="no">없음</option>
+                <option value="yes">있음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>HUD 유무</label>
+              <select id="hasHud">
+                <option value="no">없음</option>
+                <option value="yes">있음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>소유자 변경 유무</label>
+              <select id="hasOwnerChange">
+                <option value="no">변경 없음</option>
+                <option value="yes">변경 있음</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>소유자 변경 횟수 <span class="hint">선택 입력</span></label>
+              <input type="number" id="ownerChangeCount" placeholder="0" min="0">
+            </div>
+            <div class="field full">
+              <label>기타 옵션 <span class="hint">자유롭게 입력</span></label>
+              <input type="text" id="otherOptions" placeholder="예: 통풍시트, 후방카메라, 어라운드뷰, 풀옵션 등">
+            </div>
+            <div class="field full">
+              <label>특이사항 <span class="hint">자유롭게 입력</span></label>
+              <input type="text" id="specialNotes" placeholder="예: 수입차 미진 흠집, 휠 기스, 타이어 교체 필요 등">
             </div>
           </div>
         </div>
@@ -1200,6 +1290,14 @@ function getSimulatorInputs() {
     year: Number(document.getElementById('carYear').value) || 0,
     km: num('carKm'),
     origin: document.getElementById('carOrigin').value,
+    hasAccident: document.getElementById('hasAccident').value,
+    hasInsurance: document.getElementById('hasInsurance').value,
+    hasSunroof: document.getElementById('hasSunroof').value,
+    hasHud: document.getElementById('hasHud').value,
+    hasOwnerChange: document.getElementById('hasOwnerChange').value,
+    ownerChangeCount: Number(document.getElementById('ownerChangeCount').value) || 0,
+    otherOptions: document.getElementById('otherOptions').value,
+    specialNotes: document.getElementById('specialNotes').value,
     buyPrice: num('buyPrice'),
     heyFee: num('heyFee'),
     officeFee: num('officeFee'),
@@ -1299,6 +1397,11 @@ function resetSimulator() {
   });
   document.getElementById('holdMonths').value = 1;
   document.getElementById('carOrigin').value = 'domestic';
+  document.getElementById('hasAccident').value = 'no';
+  document.getElementById('hasInsurance').value = 'no';
+  document.getElementById('hasSunroof').value = 'no';
+  document.getElementById('hasHud').value = 'no';
+  document.getElementById('hasOwnerChange').value = 'no';
   setInputNum('inspectionFee', state.settings.inspectionFee);
   state.editingId = null;
   document.getElementById('editBadge').style.display = 'none';
@@ -1369,6 +1472,15 @@ function editItem(id) {
   setInputNum('carKm', item.km);
   document.getElementById('carOrigin').value = item.origin || 'domestic';
 
+  document.getElementById('hasAccident').value = item.hasAccident || 'no';
+  document.getElementById('hasInsurance').value = item.hasInsurance || 'no';
+  document.getElementById('hasSunroof').value = item.hasSunroof || 'no';
+  document.getElementById('hasHud').value = item.hasHud || 'no';
+  document.getElementById('hasOwnerChange').value = item.hasOwnerChange || 'no';
+  document.getElementById('ownerChangeCount').value = item.ownerChangeCount || '';
+  document.getElementById('otherOptions').value = item.otherOptions || '';
+  document.getElementById('specialNotes').value = item.specialNotes || '';
+
   setInputNum('buyPrice', item.buyPrice);
   setInputNum('heyFee', item.heyFee);
   setInputNum('officeFee', item.officeFee);
@@ -1416,6 +1528,25 @@ function renderInventory() {
     const statusText = item.status === 'sold' ? '판매완료' : (isWarning ? '장기보유' : '보유중');
     const profitColor = item.netProfit > 0 ? 'var(--success)' : 'var(--danger)';
 
+    // 차량 상태 태그 생성
+    const tags = [];
+    if (item.hasAccident === 'yes') tags.push('<span class="inv-tag tag-danger">사고이력</span>');
+    else if (item.hasAccident === 'no') tags.push('<span class="inv-tag tag-success">무사고</span>');
+    if (item.hasInsurance === 'yes') tags.push('<span class="inv-tag tag-warning">보험이력</span>');
+    if (item.hasSunroof === 'yes') tags.push('<span class="inv-tag tag-info">썬루프</span>');
+    if (item.hasHud === 'yes') tags.push('<span class="inv-tag tag-info">HUD</span>');
+    if (item.hasOwnerChange === 'yes') {
+      const ownerLabel = item.ownerChangeCount > 0
+        ? '소유자변경 ' + item.ownerChangeCount + '회'
+        : '소유자변경';
+      tags.push('<span class="inv-tag tag-purple">' + ownerLabel + '</span>');
+    }
+    if (item.otherOptions) {
+      tags.push('<span class="inv-tag tag-neutral">옵션: ' + escapeHtml(item.otherOptions) + '</span>');
+    }
+    const tagsHtml = tags.length > 0 ? '<div class="inv-tags">' + tags.join('') + '</div>' : '';
+    const noteHtml = item.specialNotes ? '<div class="inv-note">📝 ' + escapeHtml(item.specialNotes) + '</div>' : '';
+
     let actionsHtml = '<button class="primary" data-action="edit" data-id="' + item.id + '">✏ 수정</button>';
     if (item.status === 'holding') {
       actionsHtml += '<button class="success" data-action="sell" data-id="' + item.id + '">판매완료</button>';
@@ -1428,6 +1559,8 @@ function renderInventory() {
       '<div class="inv-info">' +
         '<h4>' + escapeHtml(item.model || '미상') + '</h4>' +
         '<div class="inv-meta">' + (item.year || '?') + '년식 · ' + formatNum(item.km) + 'km · 보유 ' + days + '일째</div>' +
+        tagsHtml +
+        noteHtml +
       '</div>' +
       '<div class="inv-cell"><div class="inv-cell-label">매입 총비용</div>' +
         '<div class="inv-cell-value">' + formatWon(item.totalBuy) + '</div></div>' +
